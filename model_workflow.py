@@ -36,6 +36,8 @@ class ModelWorkflow(Task):
     def __init__(self, config_file):
         with open(config_file, 'r') as f:
             self.config = yaml.safe_load(f)
+        mlflow.set_tracking_uri("http://localhost:5000")
+        mlflow.set_experiment("zhanyuan")
         super().__init__()
 
     def init(self):
@@ -95,18 +97,24 @@ class ModelWorkflow(Task):
         fig_list = _report_figure(report_df)
         return report_df, fig_list
     
+    def run_workflow(self):
+        with mlflow.start_run() as run:
+            mlflow.lightgbm.autolog()
+            self.init()
+            model = self.model_init()
+            dataset = self.dataset_init()
+            model = self.train(model, dataset)
+            pred, label = self.predict(model, dataset)
+            ic, ric = self.signal_record(pred, label)
+            report_df, fig_list = self.backtest_record(pred, label)
+        return report_df, fig_list    
+    
     
 # 定义main函数，用于执行任务：
 def main():
     with Flow("sqlib") as flow:
-    workflow = ModelWorkflow('config.yaml')
-    workflow.init()
-    model = workflow.model_init()
-    dataset = workflow.dataset_init()
-    model = workflow.train(model, dataset)
-    pred, label = workflow.predict(model, dataset)
-    ic, ric = workflow.signal_record(pred, label)
-    report_df, fig_list = workflow.backtest_record(pred, label)
+        workflow = ModelWorkflow('config.yaml')
+        report_df, fig_list = workflow.run_workflow()
 
 
 if __name__ == "__main__":
