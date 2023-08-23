@@ -39,7 +39,7 @@ def load_config():
 
 
 @task
-def init(config):
+def init_qlib(config):
     provider_uri = config["provider_uri"]
     reg = config["region"]
     qlib.init(provider_uri=provider_uri, region=reg)
@@ -104,16 +104,17 @@ def backtest_record(config, pred):
     return report_df, fig_list
 
 @Flow
-def run_workflow():
-    config = load_config()
-    mlflow.lightgbm.autolog()
-    init(config)
-    model = model_init(config)
-    dataset = dataset_init(config)
-    model = train(model, dataset)
-    pred, label = predict(model, dataset)
-    ic, ric = signal_record(pred, label)
-    report_df, fig_list = backtest_record(config,pred)
+def run_workflow(name="sqlib_workflow"):
+    with mlflow.start_run() as run:
+        config = load_config()
+        mlflow.lightgbm.autolog()
+        init_qlib(config)
+        model = model_init(config)
+        dataset = dataset_init(config)
+        model = train(model, dataset)
+        pred, label = predict(model, dataset)
+        ic, ric = signal_record(pred, label)
+        report_df, fig_list = backtest_record(config, pred)
 
 
 
