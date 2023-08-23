@@ -1,5 +1,5 @@
 import yaml
-from prefect import Task
+from prefect import task, Flow
 from qlib import init
 import qlib
 from qlib.utils import init_instance_by_config
@@ -25,97 +25,101 @@ import os
 import tempfile
 from qlib.contrib.evaluate import risk_analysis
 from qlib.contrib.data.handler import Alpha158
-from prefect import task, Flow, get_run_logger
-from prefect import variables
-from prefect.filesystems import LocalFileSystem, S3
+from prefect import get_run_logger
 from prefect.artifacts import create_link_artifact
 
 
+@task
+def load_config():
+    with open("config.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    mlflow.set_tracking_uri("http://localhost:5000")
+    mlflow.set_experiment("zhanyuan")
+    return config
 
-class ModelWorkflow(Task):
-    def __init__(self, config_file):
-        with open(config_file, 'r') as f:
-            self.config = yaml.safe_load(f)
-        mlflow.set_tracking_uri("http://localhost:5000")
-        mlflow.set_experiment("zhanyuan")
-        super().__init__()
 
-    def init(self):
-        provider_uri = self.config['provider_uri']
-        region = self.config['region']
-        qlib.init(provider_uri=provider_uri, region=region)
-        logger = get_run_logger()
-        logger.info("init 初始化成功")
+@task
+def init(config):
+    provider_uri = config["provider_uri"]
+    reg = config["region"]
+    qlib.init(provider_uri=provider_uri, region=reg)
+    logger = get_run_logger()
+    logger.info("init 初始化成功")
 
-    def model_init(self):
-        task = self.config['model']
-        model = init_instance_by_config(task)
-        return model
 
-    def dataset_init(self):
-        data_handler_config = self.config['data_handler_config']
-        dataset = Alpha158(**data_handler_config)
-        dataset_conf = self.config['dataset_conf']
-        dataset_conf['kwargs']['handler'] = dataset
-        dataset = init_instance_by_config(dataset_conf)
-        return dataset
+@task
+def model_init(config):
+    task = config["model"]
+    model = init_instance_by_config(task)
+    return model
 
-    def train(self, model, dataset):
-        model.fit(dataset)
-        return model
+@task
+def dataset_init(config):
+    data_handler_config = config["data_handler_config"]
+    dataset = Alpha158(**data_handler_config)
+    dataset_conf = config["dataset_conf"]
+    dataset_conf["kwargs"]["handler"] = dataset
+    dataset = init_instance_by_config(dataset_conf)
+    return dataset
 
-    def predict(self, model, dataset):
-        pred = model.predict(dataset)
-        if isinstance(pred, pd.Series):
-            pred = pred.to_frame("score")
-        params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
-        label = dataset.prepare(**params)
-        return pred, label
+@task
+def train(model, dataset):
+    model.fit(dataset)
+    return model
 
-    def signal_record(self, pred, label):
-        ic, ric = calc_ic(pred.iloc[:, 0], label.iloc[:, 0])
-        for i, (date, value) in enumerate(ic.items()):
-            mlflow.log_metric("ic", value, step=i)
-        for i, (date, value) in enumerate(ric.items()):
-            mlflow.log_metric("rank_ic", value, step=i)
-        return ic, ric
+@task
+def predict(model, dataset):
+    pred = model.predict(dataset)
+    if isinstance(pred, pd.Series):
+        pred = pred.to_frame("score")
+    params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
+    label = dataset.prepare(**params)
+    return pred, label
 
-    def backtest_record(self, pred, label):
-        FREQ = "day"
-        STRATEGY_CONFIG = self.config['strategy_config']
-        STRATEGY_CONFIG['signal'] = pred
-        EXECUTOR_CONFIG = self.config['executor_config']
-        backtest_config = self.config['backtest_config']
-        strategy_obj = TopkDropoutStrategy(**STRATEGY_CONFIG)
-        executor_obj = executor.SimulatorExecutor(**EXECUTOR_CONFIG)
-        portfolio_metric_dict, indicator_dict = backtest(
-                executor=executor_obj, strategy=strategy_obj, **backtest_config
-            )
-        analysis_freq = "{0}{1}".format(*Freq.parse(FREQ))
-        report_normal, positions_normal = portfolio_metric_dict.get(analysis_freq)
-        report_df = report_normal.copy()
-        fig_list = _report_figure(report_df)
-        return report_df, fig_list
-    
-    def run_workflow(self):
-        with mlflow.start_run() as run:
-            mlflow.lightgbm.autolog()
-            self.init()
-            model = self.model_init()
-            dataset = self.dataset_init()
-            model = self.train(model, dataset)
-            pred, label = self.predict(model, dataset)
-            ic, ric = self.signal_record(pred, label)
-            report_df, fig_list = self.backtest_record(pred, label)
-        return report_df, fig_list    
-    
-    
-# 定义main函数，用于执行任务：
+@task
+def signal_record(pred, label):
+    ic, ric = calc_ic(pred.iloc[:, 0], label.iloc[:, 0])
+    for i, (date, value) in enumerate(ic.items()):
+        mlflow.log_metric("ic", value, step=i)
+    for i, (date, value) in enumerate(ric.items()):
+        mlflow.log_metric("rank_ic", value, step=i)
+    return ic, ric
+
+@task
+def backtest_record(config, pred):
+    FREQ = "day"
+    STRATEGY_CONFIG = config["strategy_config"]
+    STRATEGY_CONFIG["signal"] = pred
+    EXECUTOR_CONFIG = config["executor_config"]
+    backtest_config = config["backtest_config"]
+    strategy_obj = TopkDropoutStrategy(**STRATEGY_CONFIG)
+    executor_obj = executor.SimulatorExecutor(**EXECUTOR_CONFIG)
+    portfolio_metric_dict, indicator_dict = backtest(
+        executor=executor_obj, strategy=strategy_obj, **backtest_config
+    )
+    analysis_freq = "{0}{1}".format(*Freq.parse(FREQ))
+    report_normal, positions_normal = portfolio_metric_dict.get(analysis_freq)
+    report_df = report_normal.copy()
+    fig_list = _report_figure(report_df)
+    return report_df, fig_list
+
+@Flow
+def run_workflow():
+    config = load_config()
+    mlflow.lightgbm.autolog()
+    init(config)
+    model = model_init(config)
+    dataset = dataset_init(config)
+    model = train(model, dataset)
+    pred, label = predict(model, dataset)
+    ic, ric = signal_record(pred, label)
+    report_df, fig_list = backtest_record(config,pred)
+
+
+
+
 def main():
-    with Flow("sqlib") as flow:
-        workflow = ModelWorkflow('config.yaml')
-        report_df, fig_list = workflow.run_workflow()
-
-
+    run_workflow()
+    
 if __name__ == "__main__":
     main()

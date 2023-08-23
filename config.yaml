@@ -1,5 +1,5 @@
 provider_uri: "~/.qlib/qlib_data/cn_data"
-region: "REG_CN"
+region: "cn"
 
 model:
   class: "LGBModel"
@@ -36,7 +36,7 @@ backtest_config:
   start_time: "2017-01-01"
   end_time: "2020-08-01"
   account: 100000000
-  benchmark: "csi300"
+  benchmark: "SH000300"
   exchange_kwargs:
     freq: "day"
     limit_threshold: 0.095
