@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import yaml
 import pandas as pd
 import mlflow
@@ -18,6 +20,8 @@ from qlib.contrib.eva.alpha import calc_ic
 from qlib.contrib.strategy import TopkDropoutStrategy
 from qlib.backtest import backtest, executor
 from qlib.contrib.report import analysis_model, analysis_position
+from qlib.contrib.evaluate import risk_analysis
+from qlib.utils import flatten_dict
 from qlib.contrib.report.analysis_position.report import (
     _report_figure,
     _calculate_report_data,
@@ -89,10 +93,6 @@ def predict(model, dataset):
 @task(name="signal_record")
 def signal_record(pred, label):
     ic, ric = calc_ic(pred.iloc[:, 0], label.iloc[:, 0])
-    for i, (date, value) in enumerate(ic.items()):
-        mlflow.log_metric("ic", value, step=i)
-    for i, (date, value) in enumerate(ric.items()):
-        mlflow.log_metric("rank_ic", value, step=i)
     return ic, ric
 
 
@@ -115,16 +115,28 @@ def simulator(config, strategy_obj):
 @task(name="backtest_record")
 def backtest_record(config, strategy_obj, executor_obj):
     backtest_config = config["port_analysis_config"]["backtest"]
-    portfolio_metric_dict, indicator_dict = backtest(
-        executor=executor_obj, strategy=strategy_obj, **backtest_config
-    )
+    portfolio_metric_dict, indicator_dict = backtest(executor=executor_obj, strategy=strategy_obj, **backtest_config)
 
     FREQ = "day"
     analysis_freq = "{0}{1}".format(*qlib.utils.time.Freq.parse(FREQ))
     report_normal, positions_normal = portfolio_metric_dict.get(analysis_freq)
     report_df = report_normal.copy()
     fig_list = _report_figure(report_df)
-    return report_df, fig_list
+    return report_normal, fig_list
+
+
+@task(name="risk_analysis")
+def riskanalysis(report_normal):
+    analysis = dict()
+    # default frequency will be daily (i.e. "day")
+    analysis["excess_return_without_cost"] = risk_analysis(report_normal["return"] - report_normal["bench"])
+    analysis["excess_return_with_cost"] = risk_analysis(report_normal["return"] - report_normal["bench"] - report_normal["cost"])
+
+    analysis_df = pd.concat(analysis)  # type: pd.DataFrame
+    # log metrics
+    analysis_dict = flatten_dict(analysis_df["risk"].unstack().T.to_dict())
+    pprint(analysis_df)
+    return analysis_df
 
 
 @flow(name="qlib_workflow", description="Demo Prefect")
@@ -143,5 +155,8 @@ def run_workflow(name="qlib_workflow"):
         # ic, ric = signal_record(pred, label)
         strategy_obj = strategy(config, pred)
         executor_obj = simulator(config, strategy_obj)
-        report_df, fig_list = backtest_record(config, strategy_obj, executor_obj)
+        report_normal, fig_list = backtest_record(config, strategy_obj, executor_obj)
+        analysis_df = riskanalysis(report_normal)
+        
+        
         mlflow.log_artifact("workflow_config_lightgbm_Alpha158.yaml")
