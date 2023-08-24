@@ -21,7 +21,21 @@ prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://pos
 ```
 
 
+#### 部署prefec
 
+Deployment configuration saved to prefect.yaml! You can now deploy using this deployment configuration with:
+
+        $ prefect deploy -n default
+
+You can also make changes to this deployment configuration by making changes to the prefect.yaml file.
+
+To execute flow runs from this deployment, start a worker in a separate terminal that pulls work from the 'default' work pool:
+
+        $ prefect worker start --pool 'default'
+
+To schedule a run for this deployment, use the following command:
+
+        $ prefect deployment run 'qlib_workflow/default'
 
 
 

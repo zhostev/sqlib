@@ -28,7 +28,8 @@ from qlib.contrib.data.handler import Alpha158
 
 
 from prefect import get_run_logger
-
+from prefect.artifacts import create_table_artifact
+from prefect.filesystems import LocalFileSystem, S3
 
 
 @task(name="load_config")
@@ -58,10 +59,10 @@ def model_init(config):
 def dataset_init(config):
     data_handler_config = config["data_handler_config"]
     dataset = Alpha158(**data_handler_config)
-    
+
     dataset_conf = config["task"]["dataset"]
     dataset = init_instance_by_config(dataset_conf)
-    
+
     logger = get_run_logger()
     # 输出dataset的信息
     logger.info(f"dataset: {dataset}")
@@ -95,18 +96,30 @@ def signal_record(pred, label):
     return ic, ric
 
 
-@task(name="backtest_record")
-def backtest_record(config, pred):
-    FREQ = "day"
+@task(name="strategy")
+def strategy(config, pred):
     STRATEGY_CONFIG = config["port_analysis_config"]["strategy"]["kwargs"]
     STRATEGY_CONFIG["signal"] = pred
-    EXECUTOR_CONFIG = config["port_analysis_config"]["executor"]["kwargs"]
-    backtest_config = config["port_analysis_config"]["backtest"]
     strategy_obj = TopkDropoutStrategy(**STRATEGY_CONFIG)
+    return strategy_obj
+
+
+@task(name="SimulatorExecutor")
+def simulator(config, strategy_obj):
+    EXECUTOR_CONFIG = config["port_analysis_config"]["executor"]["kwargs"]
+
     executor_obj = executor.SimulatorExecutor(**EXECUTOR_CONFIG)
+    return executor_obj
+
+
+@task(name="backtest_record")
+def backtest_record(config, strategy_obj, executor_obj):
+    backtest_config = config["port_analysis_config"]["backtest"]
     portfolio_metric_dict, indicator_dict = backtest(
         executor=executor_obj, strategy=strategy_obj, **backtest_config
     )
+
+    FREQ = "day"
     analysis_freq = "{0}{1}".format(*qlib.utils.time.Freq.parse(FREQ))
     report_normal, positions_normal = portfolio_metric_dict.get(analysis_freq)
     report_df = report_normal.copy()
@@ -128,7 +141,7 @@ def run_workflow(name="qlib_workflow"):
         model = train(model, dataset)
         pred, label = predict(model, dataset)
         # ic, ric = signal_record(pred, label)
-        report_df, fig_list = backtest_record(config, pred)
-
-
-
+        strategy_obj = strategy(config, pred)
+        executor_obj = simulator(config, strategy_obj)
+        report_df, fig_list = backtest_record(config, strategy_obj, executor_obj)
+        mlflow.log_artifact("workflow_config_lightgbm_Alpha158.yaml")
