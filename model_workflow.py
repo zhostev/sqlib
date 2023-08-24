@@ -35,6 +35,8 @@ from prefect import get_run_logger
 from prefect.artifacts import create_table_artifact
 from prefect.filesystems import LocalFileSystem, S3
 
+import duckdb
+
 
 @task(name="load_config")
 def load_config():
@@ -87,6 +89,7 @@ def predict(model, dataset):
         pred = pred.to_frame("score")
     params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
     label = dataset.prepare(**params)
+    duckdb.sql("CREATE TABLE analysis_df AS SELECT * FROM pred")
     return pred, label
 
 
@@ -133,6 +136,7 @@ def riskanalysis(report_normal):
     analysis["excess_return_with_cost"] = risk_analysis(report_normal["return"] - report_normal["bench"] - report_normal["cost"])
 
     analysis_df = pd.concat(analysis)  # type: pd.DataFrame
+    duckdb.sql("CREATE TABLE analysis_df AS SELECT * FROM analysis_df")
     # log metrics
     analysis_dict = flatten_dict(analysis_df["risk"].unstack().T.to_dict())
     pprint(analysis_df)
@@ -158,5 +162,9 @@ def run_workflow(name="qlib_workflow"):
         report_normal, fig_list = backtest_record(config, strategy_obj, executor_obj)
         analysis_df = riskanalysis(report_normal)
         
+        # 把workflow_config_lightgbm_Alpha158.yaml上传到mlflow
+        create_link_artifact("workflow_config_lightgbm_Alpha158.yaml", "workflow_config_lightgbm_Alpha158.yaml")
+
+
+
         
-        # mlflow.log_artifact("workflow_config_lightgbm_Alpha158.yamll")
