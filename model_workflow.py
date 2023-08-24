@@ -6,7 +6,7 @@ from mlflow.tracking import MlflowClient
 import plotly.io as pio
 import os
 import tempfile
-from prefect import task, Flow
+from prefect import task, flow
 from prefect.artifacts import create_link_artifact
 from qlib import init
 import qlib
@@ -28,30 +28,30 @@ from qlib.contrib.data.handler import Alpha158
 from prefect import get_run_logger
 
 
-@task
+@task(name="load_config")
 def load_config():
     with open("workflow_config_lightgbm_Alpha158.yaml", "r") as f:
         config = yaml.safe_load(f)
     return config
 
 
-@task
+@task(name="init_qlib")
 def init_qlib(config):
-    provider_uri = config['qlib_init']["provider_uri"]
-    reg = config['qlib_init']["region"]
+    provider_uri = config["qlib_init"]["provider_uri"]
+    reg = config["qlib_init"]["region"]
     qlib.init(provider_uri=provider_uri, region=reg)
     logger = get_run_logger()
-    logger.info("init 初始化成功")
+    logger.info("init qlib success")
 
 
-@task
+@task(name="model_init")
 def model_init(config):
     task = config["task"]["model"]
     model = init_instance_by_config(task)
     return model
 
 
-@task
+@task(name="dataset_init")
 def dataset_init(config):
     data_handler_config = config["data_handler_config"]
     dataset = Alpha158(**data_handler_config)
@@ -61,13 +61,13 @@ def dataset_init(config):
     return dataset
 
 
-@task
+@task(name="train")
 def train(model, dataset):
     model.fit(dataset)
     return model
 
 
-@task
+@task(name="predict")
 def predict(model, dataset):
     pred = model.predict(dataset)
     if isinstance(pred, pd.Series):
@@ -77,7 +77,7 @@ def predict(model, dataset):
     return pred, label
 
 
-@task
+@task(name="signal_record")
 def signal_record(pred, label):
     ic, ric = calc_ic(pred.iloc[:, 0], label.iloc[:, 0])
     for i, (date, value) in enumerate(ic.items()):
@@ -87,12 +87,12 @@ def signal_record(pred, label):
     return ic, ric
 
 
-@task
+@task(name="backtest_record")
 def backtest_record(config, pred):
     FREQ = "day"
-    STRATEGY_CONFIG = config["port_analysis_config"]["strategy"]['kwargs']
+    STRATEGY_CONFIG = config["port_analysis_config"]["strategy"]["kwargs"]
     STRATEGY_CONFIG["signal"] = pred
-    EXECUTOR_CONFIG = config["port_analysis_config"]["executor"]['kwargs']
+    EXECUTOR_CONFIG = config["port_analysis_config"]["executor"]["kwargs"]
     backtest_config = config["port_analysis_config"]["backtest"]
     strategy_obj = TopkDropoutStrategy(**STRATEGY_CONFIG)
     executor_obj = executor.SimulatorExecutor(**EXECUTOR_CONFIG)
@@ -106,7 +106,7 @@ def backtest_record(config, pred):
     return report_df, fig_list
 
 
-@Flow
+@flow(name="qlib_workflow", description="Demo Prefect")
 def run_workflow(name="qlib_workflow"):
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("zhanyuan")
@@ -123,9 +123,4 @@ def run_workflow(name="qlib_workflow"):
         report_df, fig_list = backtest_record(config, pred)
 
 
-def main():
-    run_workflow()
 
-
-if __name__ == "__main__":
-    main()
