@@ -159,4 +159,4 @@ def run_workflow(name="qlib_workflow"):
         analysis_df = riskanalysis(report_normal)
         
         
-        mlflow.log_artifact("workflow_config_lightgbm_Alpha158.yaml")
+        # mlflow.log_artifact("workflow_config_lightgbm_Alpha158.yamll")
