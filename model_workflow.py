@@ -25,7 +25,10 @@ from qlib.contrib.report.analysis_position.report import (
 from qlib.contrib.report.analysis_position.score_ic import score_ic_graph
 from qlib.contrib.evaluate import risk_analysis
 from qlib.contrib.data.handler import Alpha158
+
+
 from prefect import get_run_logger
+
 
 
 @task(name="load_config")
@@ -35,8 +38,8 @@ def load_config():
     return config
 
 
-@task(name="init_qlib")
-def init_qlib(config):
+@task(name="init")
+def init(config):
     provider_uri = config["qlib_init"]["provider_uri"]
     reg = config["qlib_init"]["region"]
     qlib.init(provider_uri=provider_uri, region=reg)
@@ -55,9 +58,14 @@ def model_init(config):
 def dataset_init(config):
     data_handler_config = config["data_handler_config"]
     dataset = Alpha158(**data_handler_config)
+    
     dataset_conf = config["task"]["dataset"]
-    dataset_conf["kwargs"]["handler"] = dataset
     dataset = init_instance_by_config(dataset_conf)
+    
+    logger = get_run_logger()
+    # 输出dataset的信息
+    logger.info(f"dataset: {dataset}")
+
     return dataset
 
 
@@ -114,7 +122,7 @@ def run_workflow(name="qlib_workflow"):
     with mlflow.start_run() as run:
         config = load_config()
         mlflow.lightgbm.autolog()
-        init_qlib(config)
+        init(config)
         model = model_init(config)
         dataset = dataset_init(config)
         model = train(model, dataset)
