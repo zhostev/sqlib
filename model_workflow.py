@@ -87,6 +87,7 @@ def predict(model, dataset):
     pred = model.predict(dataset)
     if isinstance(pred, pd.Series):
         pred = pred.to_frame("score")
+    pred['date'] = pred.index.get_level_values("datetime")
     params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
     label = dataset.prepare(**params)
     # 如果存在analysis_df，先删除，再创建
@@ -129,12 +130,9 @@ def backtest_record(config, strategy_obj, executor_obj):
     FREQ = "day"
     analysis_freq = "{0}{1}".format(*qlib.utils.time.Freq.parse(FREQ))
     report_normal, positions_normal = portfolio_metric_dict.get(analysis_freq)
-    # report_normal = report_normal.copy()
-    # report_normal = _calculate_report_data(report_normal)
+
     report_df = report_normal.copy()
-    fig_list,report_df = _report_figure(report_df)
-    # 将index转为日期格式
-    # 把第一行数据删除
+    report_df = _calculate_report_data(report_df)
     report_df = report_df.iloc[1:]
     report_df.index = pd.to_datetime(report_df.index)
     report_df['date'] = report_df.index
@@ -143,7 +141,21 @@ def backtest_record(config, strategy_obj, executor_obj):
     con.sql("DROP TABLE IF EXISTS report")
     con.sql("CREATE TABLE report AS SELECT * FROM report_df")
     con.sql("SELECT * FROM report").show()
-    return report_normal, fig_list
+    
+    # indicators_normal = indicator_dict.get(analysis_freq)[0]
+    # indicators_df = indicators_normal.copy()
+    # # positions_df有dict转为df
+    # indicators_df = pd.DataFrame(indicators_df, index=[0])
+
+    # indicators_df = indicators_df.iloc[1:]
+    # indicators_df.index = pd.to_datetime(indicators_df.index)
+    # indicators_df['date'] = indicators_df.index
+    
+    # con = duckdb.connect('indicators_normal.db')
+    # con.sql("DROP TABLE IF EXISTS indicators")
+    # con.sql("CREATE TABLE indicators AS SELECT * FROM indicators_df")
+    # con.sql("SELECT * FROM indicators").show()
+    return report_normal
 
 
 @task(name="risk_analysis")
@@ -180,7 +192,7 @@ def run_workflow(name="qlib_workflow"):
         # ic, ric = signal_record(pred, label)
         strategy_obj = strategy(config, pred)
         executor_obj = simulator(config, strategy_obj)
-        report_normal, fig_list = backtest_record(config, strategy_obj, executor_obj)
+        report_normal = backtest_record(config, strategy_obj, executor_obj)
         analysis_df = riskanalysis(report_normal)
         
         # 把workflow_config_lightgbm_Alpha158.yaml上传到mlflow
@@ -188,4 +200,4 @@ def run_workflow(name="qlib_workflow"):
 
 
 
-        
+
