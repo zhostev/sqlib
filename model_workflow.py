@@ -10,7 +10,7 @@ import os
 import tempfile
 from prefect import task, flow
 from prefect.artifacts import create_link_artifact
-from qlib import init
+# from qlib import init
 import qlib
 from qlib.utils import init_instance_by_config
 from qlib.workflow import R
@@ -49,7 +49,7 @@ def load_config():
 def init(config):
     provider_uri = config["qlib_init"]["provider_uri"]
     reg = config["qlib_init"]["region"]
-    qlib.init(provider_uri=provider_uri, region=reg)
+    qlib.init_qlib(provider_uri=provider_uri, region=reg)
     logger = get_run_logger()
     logger.info("init qlib success")
 
@@ -122,14 +122,27 @@ def simulator(config, strategy_obj):
 
 @task(name="backtest_record")
 def backtest_record(config, strategy_obj, executor_obj):
+    
     backtest_config = config["port_analysis_config"]["backtest"]
     portfolio_metric_dict, indicator_dict = backtest(executor=executor_obj, strategy=strategy_obj, **backtest_config)
 
     FREQ = "day"
     analysis_freq = "{0}{1}".format(*qlib.utils.time.Freq.parse(FREQ))
     report_normal, positions_normal = portfolio_metric_dict.get(analysis_freq)
+    # report_normal = report_normal.copy()
+    # report_normal = _calculate_report_data(report_normal)
     report_df = report_normal.copy()
-    fig_list = _report_figure(report_df)
+    fig_list,report_df = _report_figure(report_df)
+    # 将index转为日期格式
+    # 把第一行数据删除
+    report_df = report_df.iloc[1:]
+    report_df.index = pd.to_datetime(report_df.index)
+    report_df['date'] = report_df.index
+
+    con = duckdb.connect('report_normal.db')
+    con.sql("DROP TABLE IF EXISTS report")
+    con.sql("CREATE TABLE report AS SELECT * FROM report_df")
+    con.sql("SELECT * FROM report").show()
     return report_normal, fig_list
 
 
