@@ -39,7 +39,16 @@ To schedule a run for this deployment, use the following command:
 
 
 
+#### 安装superset
+```
+docker run -d -p 8080:8088 -v /home/idea/qlib/qlib_t/sqlib:/home/superset/app -e "SUPERSET_SECRET_KEY=sqlib1234" --name superset amancevice/superset
 
+docker exec -it superset superset-init 
+
+pip install duckdb-engine -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+重启superset
 
 
 

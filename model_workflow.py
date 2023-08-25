@@ -89,7 +89,12 @@ def predict(model, dataset):
         pred = pred.to_frame("score")
     params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
     label = dataset.prepare(**params)
-    duckdb.sql("CREATE TABLE analysis_df AS SELECT * FROM pred")
+    # 如果存在analysis_df，先删除，再创建
+    con = duckdb.connect('pred.db')
+    con.sql("DROP TABLE IF EXISTS pred_db")
+    con.sql("CREATE TABLE pred_db AS SELECT * FROM pred")
+    con.sql("SELECT * FROM pred_db").show()
+
     return pred, label
 
 
@@ -136,7 +141,10 @@ def riskanalysis(report_normal):
     analysis["excess_return_with_cost"] = risk_analysis(report_normal["return"] - report_normal["bench"] - report_normal["cost"])
 
     analysis_df = pd.concat(analysis)  # type: pd.DataFrame
-    duckdb.sql("CREATE TABLE analysis_df AS SELECT * FROM analysis_df")
+    con = duckdb.connect('analysis_df.db')
+    con.sql("DROP TABLE IF EXISTS analysis")
+    con.sql("CREATE TABLE analysis AS SELECT * FROM analysis_df")
+    con.sql("SELECT * FROM analysis").show()
     # log metrics
     analysis_dict = flatten_dict(analysis_df["risk"].unstack().T.to_dict())
     pprint(analysis_df)
