@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 添加所有修改的文件到暂存区
-git add --all
+git add --all :!*.db
 
 # 提交修改
 read -p "请输入提交说明: " message
