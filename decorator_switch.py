@@ -11,8 +11,8 @@ def decorator_with_parameters(print_func=False):
         def wrapper(*args, **kwargs):
             if __name__ == '__main__':
                 print("decorator_with_parameters")
-                if print_func:
-                    print(f'{func = }')
+            if print_func:
+                print(f'{func = }')
             return func(*args, **kwargs)
         return wrapper
     return decorator
