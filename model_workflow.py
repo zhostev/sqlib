@@ -46,12 +46,6 @@ def model_data_init(config):
         logger.info(f"Model initialized: {model}")
 
     # Initialize data
-    data_config = config["task"]["dataset"]
-    dataset = init_instance_by_config(data_config)
-    if use_prefect:
-        logger.info(f"Dataset initialized: {dataset}")
-
-    # Reweighter = task_config.get("reweighter", None)
     # data_handler_config = config["task"]["dataset"]["kwargs"]["handler"]
     data_handler_config = config["data_handler_config"]
     hd = Alpha158(**data_handler_config)
@@ -59,7 +53,8 @@ def model_data_init(config):
     dataset_conf["kwargs"]["handler"] = hd
     
     dataset = init_instance_by_config(dataset_conf)
-    logger.info(f"Dataset initialized: {dataset}")
+    if use_prefect:
+        logger.info(f"Dataset initialized: {dataset}")
 
     # Reweighter = task_config.get("reweighter", None)
     history = hd.fetch()
