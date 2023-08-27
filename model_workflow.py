@@ -152,7 +152,7 @@ def risk_analysis_(report_normal):
 
 
 # 定义流程
-@sod(task, enabled=USE_PREFECT, name="qlib_workflow", description="Demo Prefect")
+@sod(flow, enabled=USE_PREFECT, name="qlib_workflow", description="Demo Prefect")
 def run_workflow(config=CFG, name="qlib_workflow"):
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("zhanyuan")
