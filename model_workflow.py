@@ -63,7 +63,7 @@ def model_data_init(config):
     execute_sql("history.db", "DROP TABLE IF EXISTS history_db")
     execute_sql("history.db", "CREATE TABLE history_db AS SELECT * FROM history")
     execute_sql("history.db", "SELECT * FROM history_db")
-    
+
     return model, dataset
 
 
