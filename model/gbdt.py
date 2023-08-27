@@ -85,11 +85,7 @@ class LGBModel(ModelFT, LightGBMFInt):
             callbacks=[early_stopping_callback, verbose_eval_callback, evals_result_callback],
             **kwargs,
         )
-        # for k in names:
-        #     for key, val in evals_result[k].items():
-        #         name = f"{key}.{k}"
-        #         for epoch, m in enumerate(val):
-        #             R.log_metrics(**{name.replace("@", "_"): m}, step=epoch)
+
 
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if self.model is None:
