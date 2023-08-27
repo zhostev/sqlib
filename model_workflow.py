@@ -17,13 +17,6 @@ from qlib.contrib.evaluate import risk_analysis
 from qlib.contrib.data.handler import Alpha158
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.contrib.report.analysis_position.report import _calculate_report_data
-
-
-from prefect import get_run_logger
-from prefect.artifacts import create_table_artifact
-from prefect.filesystems import LocalFileSystem, S3
-
-import duckdb
 from decorator_switch import second_order_decorator as sod
 
 
