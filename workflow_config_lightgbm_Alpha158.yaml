@@ -3,6 +3,8 @@ qlib_init:
     region: cn
 market: &market csi300
 benchmark: &benchmark SH000300
+freq: &freq day
+use_prefect: True
 data_handler_config: &data_handler_config
     start_time: 2008-01-01
     end_time: 2020-08-01
@@ -22,6 +24,7 @@ port_analysis_config: &port_analysis_config
         end_time: 2020-08-01
         account: 100000000
         benchmark: *benchmark
+        freq: *freq        
         exchange_kwargs:
             limit_threshold: 0.095
             deal_price: close
@@ -32,7 +35,7 @@ port_analysis_config: &port_analysis_config
         class: SimulatorExecutor
         module_path: qlib.backtest.executor
         kwargs: 
-            time_per_step: day
+            time_per_step: *freq
             generate_portfolio_metrics: True
             
 task:
