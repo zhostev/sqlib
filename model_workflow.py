@@ -40,21 +40,22 @@ USE_PREFECT = CFG["use_prefect"]
 def model_data_init(config):
     provider_uri = config["qlib_init"]["provider_uri"]
     region = config["qlib_init"]["region"]
+    use_prefect = config["use_prefect"]
     qlib.init(provider_uri=provider_uri, region=region)
-    if USE_PREFECT:
+    if use_prefect:
         logger = get_run_logger()
         logger.info("QLib initialized successfully")
 
     # Initialize model
     model_config = config["task"]["model"]
     model = init_instance_by_config(model_config)
-    if USE_PREFECT:
+    if use_prefect:
         logger.info(f"Model initialized: {model}")
 
     # Initialize data
     data_config = config["task"]["dataset"]
     dataset = init_instance_by_config(data_config)
-    if USE_PREFECT:
+    if use_prefect:
         logger.info(f"Dataset initialized: {dataset}")
 
     # Reweighter = task_config.get("reweighter", None)
