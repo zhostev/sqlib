@@ -42,11 +42,22 @@ def model_data_init(config):
     logger.info(f"Model initialized: {model}")
 
     # Initialize data
-    data_config = config["task"]["dataset"]
-    dataset = init_instance_by_config(data_config)
+    # data_handler_config = config["task"]["dataset"]["kwargs"]["handler"]
+    data_handler_config = config["data_handler_config"]
+    hd = Alpha158(**data_handler_config)
+    dataset_conf = config["task"]["dataset"]
+    dataset_conf["kwargs"]["handler"] = hd
+    
+    dataset = init_instance_by_config(dataset_conf)
     logger.info(f"Dataset initialized: {dataset}")
 
     # Reweighter = task_config.get("reweighter", None)
+    history = hd.fetch()
+    history = history.reset_index()
+    history.head()
+    execute_sql("history.db", "DROP TABLE IF EXISTS history_db")
+    execute_sql("history.db", "CREATE TABLE history_db AS SELECT * FROM history")
+    execute_sql("history.db", "SELECT * FROM history_db")
 
     return model, dataset
 
