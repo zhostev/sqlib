@@ -180,7 +180,11 @@ class Alpha158(DataHandlerLP):
             process_type=process_type,
             **kwargs
         )
-
+        # Print loaded data
+        print("Loaded data:")
+        df = self.data_loader.load(instruments=self.instruments, start_time=self.start_time, end_time=self.end_time)
+        print(df.head())
+        
     def get_feature_config(self):
         conf = {
             "kbar": {},
