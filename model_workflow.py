@@ -49,7 +49,7 @@ def model_data_init(config):
     hd = Alpha158(**data_handler_config)
     dataset_conf = config["task"]["dataset"]
     dataset_conf["kwargs"]["handler"] = hd
-    
+
     dataset = init_instance_by_config(dataset_conf)
     logger.info(f"Dataset initialized: {dataset}")
 
@@ -75,7 +75,6 @@ def train_and_predict(model, dataset):
 
     save_to_db("pred.db", "pred_db", pred)
     return pred, label
-
 
 
 @task(name="strategy")
@@ -137,7 +136,6 @@ def riskanalysis(report_normal):
     )
     analysis_df = pd.concat(analysis)
 
-    
     save_to_db("analysis_df.db", "analysis_db", analysis_df)
 
     return analysis_df
