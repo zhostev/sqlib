@@ -18,6 +18,8 @@ from qlib.contrib.data.handler import Alpha158
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.contrib.report.analysis_position.report import _calculate_report_data
 
+from database_utils.db_utils import save_to_db, DuckDBManager
+
 
 # 定义任务
 @task(name="load_config")
@@ -55,9 +57,8 @@ def model_data_init(config):
     history = hd.fetch()
     history = history.reset_index()
     history.head()
-    execute_sql("history.db", "DROP TABLE IF EXISTS history_db")
-    execute_sql("history.db", "CREATE TABLE history_db AS SELECT * FROM history")
-    execute_sql("history.db", "SELECT * FROM history_db")
+
+    save_to_db("history.db", "history_db", history)
 
     return model, dataset
 
@@ -71,15 +72,10 @@ def train_and_predict(model, dataset):
     pred["date"] = pred.index.get_level_values("datetime")
     params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
     label = dataset.prepare(**params)
-    execute_sql("pred.db", "DROP TABLE IF EXISTS pred_db")
-    execute_sql("pred.db", "CREATE TABLE pred_db AS SELECT * FROM pred")
-    execute_sql("pred.db", "SELECT * FROM pred_db")
+
+    save_to_db("pred.db", "pred_db", pred)
     return pred, label
 
-
-def execute_sql(db_name, sql):
-    con = duckdb.connect(db_name)
-    con.sql(sql)
 
 
 @task(name="strategy")
@@ -113,9 +109,8 @@ def backtest_record(config, strategy_obj, executor_obj):
     cumreport_df = cumreport_df.iloc[1:]
     cumreport_df.index = pd.to_datetime(cumreport_df.index)
     cumreport_df["date"] = cumreport_df.index
-    execute_sql("report_normal.db", "DROP TABLE IF EXISTS report")
-    execute_sql("report_normal.db", "CREATE TABLE report AS SELECT * FROM cumreport_df")
-    execute_sql("report_normal.db", "SELECT * FROM report")
+
+    save_to_db("report_normal.db", "report_db", cumreport_df)
 
     # get indicators_normal
     indicators_normal = indicator_dict.get(analysis_freq)[0]
@@ -124,11 +119,8 @@ def backtest_record(config, strategy_obj, executor_obj):
     indicators_df = indicators_df.iloc[1:]
     indicators_df.index = pd.to_datetime(indicators_df.index)
     indicators_df["date"] = indicators_df.index
-    execute_sql("indicators_normal.db", "DROP TABLE IF EXISTS indicators")
-    execute_sql(
-        "indicators_normal.db", "CREATE TABLE indicators AS SELECT * FROM indicators_df"
-    )
-    execute_sql("indicators_normal.db", "SELECT * FROM indicators")
+
+    save_to_db("indicators_normal.db", "indicators_db", indicators_df)
 
     # return results
     return report_df, indicators_normal
@@ -144,9 +136,9 @@ def riskanalysis(report_normal):
         report_normal["return"] - report_normal["bench"] - report_normal["cost"]
     )
     analysis_df = pd.concat(analysis)
-    execute_sql("analysis_df.db", "DROP TABLE IF EXISTS analysis")
-    execute_sql("analysis_df.db", "CREATE TABLE analysis AS SELECT * FROM analysis_df")
-    execute_sql("analysis_df.db", "SELECT * FROM analysis")
+
+    
+    save_to_db("analysis_df.db", "analysis_db", analysis_df)
 
     return analysis_df
 
