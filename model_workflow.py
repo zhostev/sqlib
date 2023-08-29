@@ -50,8 +50,8 @@ def model_data_init(config):
     # df = data_loader.load(instruments='csi300', start_time='2010-01-01', end_time='2017-12-31')
     
     data_handler_config = config["data_handler_config"]
-    # data_handler_config['data_loader'] = data_loader
-        
+
+
     hd = Alpha158(**data_handler_config)
     dataset_conf = config["task"]["dataset"]
     dataset_conf["kwargs"]["handler"] = hd

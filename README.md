@@ -1,6 +1,30 @@
 # sqlib
 
-### 安装prefect
+
+## 1、qlib安装
+
+具体参考：https://qlib.readthedocs.io/en/latest/start/installation.html
+
+若需要修改源码的，建议源码安装。
+
+```
+pip install numpy
+pip install --upgrade cython
+git clone https://github.com/microsoft/qlib.git && cd qlib
+python setup.py install
+```
+
+特别说明：支持python==3.8版本。
+
+## 2、安装mlflow
+
+具体参考：https://github.com/Toumash/mlflow-docker
+
+根据自己的实际情况修改`.env`
+
+执行几个sh脚本后，运行`docker-compose up -d`
+
+## 3、安装prefect
 
 #### 启动postgres
 
@@ -52,7 +76,7 @@ To schedule a run for this deployment, use the following command:
 
 
 
-#### 安装superset容器, 并设置登录用户名密码等
+## 4、安装superset容器, 并设置登录用户名密码等
 ```
 docker run -d -p 8080:8088 -v /home/idea/qlib/qlib_t/sqlib:/home/superset/app -e "SUPERSET_SECRET_KEY=sqlib1234" --name superset amancevice/superset
 
