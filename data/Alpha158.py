@@ -152,6 +152,7 @@ class Alpha158(DataHandlerLP):
         fit_end_time=None,
         process_type=DataHandlerLP.PTYPE_A,
         filter_pipe=None,
+        data_loader=None,
         inst_processors=None,
         **kwargs
     ):
