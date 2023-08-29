@@ -48,9 +48,9 @@ docker start prefect-postgres
 prefect server start
 ```
 
-## 4、安装superset
+## 4、安装Superset
 
-#### 安装superset
+#### 安装Superset
 ```
 docker run -d -p 8080:8088 -v /home/idea/qlib/qlib_t/sqlib:/home/superset/app -e "SUPERSET_SECRET_KEY=sqlib1234" --name superset amancevice/superset
 
@@ -58,6 +58,7 @@ docker exec -it superset superset-init
 
 pip install duckdb-engine -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+duckdb:////home/superset/app/report_normal.db
 
 特别说明一下：`/home/idea/qlib/qlib_t/sqlib:/home/superset/app`
 

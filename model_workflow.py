@@ -17,6 +17,7 @@ from qlib.contrib.evaluate import risk_analysis
 from data.Alpha158 import Alpha158
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.contrib.report.analysis_position.report import _calculate_report_data
+from qlib.data.dataset.loader import QlibDataLoader
 
 from database_utils.db_utils import save_to_db, DuckDBManager
 
@@ -45,7 +46,12 @@ def model_data_init(config):
 
     # Initialize data
     # data_handler_config = config["task"]["dataset"]["kwargs"]["handler"]
+    # data_loader = QlibDataLoader(config=config['data_loader']['kwargs']['config'])
+    # df = data_loader.load(instruments='csi300', start_time='2010-01-01', end_time='2017-12-31')
+    
     data_handler_config = config["data_handler_config"]
+    # data_handler_config['data_loader'] = data_loader
+        
     hd = Alpha158(**data_handler_config)
     dataset_conf = config["task"]["dataset"]
     dataset_conf["kwargs"]["handler"] = hd
