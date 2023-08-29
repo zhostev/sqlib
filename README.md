@@ -64,6 +64,8 @@ docker exec -it superset superset-init
 docker exec -it superset bash
 
 pip install duckdb-engine -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+exit
 ```
 
 #### 重启superset容器
