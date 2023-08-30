@@ -74,7 +74,7 @@ port_analysis_config: &port_analysis_config
 task:
     model:
         class: LGBModel
-        module_path: model.gbdt
+        module_path: model_handler.lightgbm
         kwargs:
             loss: mse
             colsample_bytree: 0.8879

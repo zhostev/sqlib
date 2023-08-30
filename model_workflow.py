@@ -6,7 +6,6 @@ from prefect import get_run_logger
 import yaml
 import pandas as pd
 import mlflow
-import duckdb
 import qlib
 from qlib.utils import init_instance_by_config, flatten_dict
 from qlib.contrib.eva.alpha import calc_ic
