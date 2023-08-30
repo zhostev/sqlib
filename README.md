@@ -24,6 +24,9 @@ python setup.py install
 
 执行几个sh脚本后，运行`docker-compose up -d`
 
+特别说明：也可以直接 pip install mlflow
+然后mlflow ui 启动服务
+
 ## 3、安装prefect
 
 #### 启动postgres
