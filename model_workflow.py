@@ -14,7 +14,8 @@ from qlib.contrib.strategy import TopkDropoutStrategy
 from qlib.backtest import backtest, executor
 from qlib.contrib.report import analysis_model, analysis_position
 from qlib.contrib.evaluate import risk_analysis
-from data.Alpha158 import Alpha158
+from data_handler.alpha158 import Alpha158
+from strategy.topk_dropout import TopkDropoutStrategy
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.contrib.report.analysis_position.report import _calculate_report_data
 from qlib.data.dataset.loader import QlibDataLoader
