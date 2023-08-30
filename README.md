@@ -4,7 +4,7 @@
 ## 1、qlib安装
 
 具体参考：https://qlib.readthedocs.io/en/latest/start/installation.html
-
+可以直接 pip install qlib
 若需要修改源码的，建议源码安装。
 
 ```
