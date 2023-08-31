@@ -7,9 +7,6 @@ ProjectName and Description
 ![sqlib方案](https://github.com/vinsvison/sqlib/assets/57177476/d13aeb33-b400-469b-9faf-604036c0a21e)
 
 <p align="center">
-  <a href="https://github.com/shaojintian/Best_README_template/">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
   <h3 align="center">"sqlib介绍</h3>
   <p align="center">
     一个"完美的"README去快速开始你的项目！
