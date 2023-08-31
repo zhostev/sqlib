@@ -9,8 +9,7 @@ from qlib.utils import init_instance_by_config
 from qlib.contrib.strategy import TopkDropoutStrategy
 from qlib.backtest import backtest, executor
 from qlib.contrib.evaluate import risk_analysis
-from qlib.contrib.data.handler import AlphaCustom, Alpha158
-# from data_handler.alpha158 import Alpha158
+from data_handler.alpha158 import Alpha158
 from strategy.topk_dropout import TopkDropoutStrategy
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.contrib.report.analysis_position.report import _calculate_report_data
@@ -59,7 +58,7 @@ def model_data_init(config):
     
     data_handler_config = config["data_handler_config"]
 
-    handler_class = Alpha158 if config['handler_name'] == 'Alpha158' else AlphaCustom
+    handler_class = Alpha158 # if config['handler_name'] == 'Alpha158' else AlphaCustom
     hd = handler_class(**data_handler_config)
     dataset_conf = config["task"]["dataset"]
     dataset_conf["kwargs"]["handler"] = hd
