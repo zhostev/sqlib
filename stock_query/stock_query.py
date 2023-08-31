@@ -39,5 +39,5 @@ class StockQuery:
 
 if __name__ == "__main__":
     stock_query = StockQuery()
-    result = stock_query.query_stock("热度前十的股票")
+    result = stock_query.query_stock("热度前二十的股票")
     print(result)
