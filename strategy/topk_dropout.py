@@ -144,7 +144,8 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         # NOTE: the current version of topk dropout strategy can't handle pd.DataFrame(multiple signal)
         # So it only leverage the first col of signal
         if isinstance(pred_score, pd.DataFrame):
-            pred_score = pred_score.iloc[:, 0]
+            # pred_score = pred_score.iloc[:, 0]
+            pred_score = pred_score.mean(axis=1, numeric_only=True)
         if pred_score is None:
             return TradeDecisionWO([], self)
         if self.only_tradable:

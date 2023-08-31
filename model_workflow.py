@@ -40,18 +40,16 @@ def model_data_init(config):
     logger.info("QLib initialized successfully")
 
     # Initialize model
-    model_config = config["task"]["model"]
-    model = init_instance_by_config(model_config)
-    logger.info(f"Model initialized: {model}")
+    model_config_1 = config["task"]["model_1"]
+    model_1 = init_instance_by_config(model_config_1)
+    logger.info(f"Model initialized: {model_1}")
+    
+    model_config_2 = config["task"]["model_2"]
+    model_2 = init_instance_by_config(model_config_2)
+    logger.info(f"Model initialized: {model_2}")
 
     # Initialize data
-    # data_handler_config = config["task"]["dataset"]["kwargs"]["handler"]
-    # data_loader = QlibDataLoader(config=config['data_loader']['kwargs']['config'])
-    # df = data_loader.load(instruments='csi300', start_time='2010-01-01', end_time='2017-12-31')
-    
     data_handler_config = config["data_handler_config"]
-
-
     hd = Alpha158(**data_handler_config)
     dataset_conf = config["task"]["dataset"]
     dataset_conf["kwargs"]["handler"] = hd
@@ -59,20 +57,32 @@ def model_data_init(config):
     dataset = init_instance_by_config(dataset_conf)
     logger.info(f"Dataset initialized: {dataset}")
 
-    # Reweighter = task_config.get("reweighter", None)
     history = hd.fetch()
     history = history.reset_index()
     history.head()
 
     save_to_db("history.db", "history_db", history)
 
-    return model, dataset
+    return (model_1, model_2), dataset
 
 
 @task(name="train_and_predict")
-def train_and_predict(model, dataset):
-    model.fit(dataset)
-    pred = model.predict(dataset)
+def train_and_predict(models, dataset):
+    # Unpack models
+    model_1, model_2 = models
+
+    # Train and predict with model_1
+    model_1.fit(dataset)
+    pred_1 = model_1.predict(dataset)
+    
+    # Train and predict with model_2
+    model_2.fit(dataset)
+    pred_2 = model_2.predict(dataset)
+    
+    # Combine predictions
+    pred = pd.concat([pred_1, pred_2], axis=1)
+    
+    # Post-processing
     if isinstance(pred, pd.Series):
         pred = pred.to_frame("score")
     pred["date"] = pred.index.get_level_values("datetime")
@@ -81,6 +91,7 @@ def train_and_predict(model, dataset):
 
     save_to_db("pred.db", "pred_db", pred)
     return pred, label
+
 
 
 @task(name="strategy")
