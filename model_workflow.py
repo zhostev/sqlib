@@ -162,7 +162,7 @@ def riskanalysis(report_normal):
 @flow(name="qlib_workflow", description="Demo Prefect")
 def run_workflow(name="qlib_workflow"):
     mlflow.set_tracking_uri("http://localhost:5000")
-    mlflow.set_experiment("zhanyuan")
+    mlflow.set_experiment("model_workflow")
     with mlflow.start_run() as run:
         mlflow.lightgbm.autolog()
         config = load_config()
