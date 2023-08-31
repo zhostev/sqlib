@@ -145,7 +145,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         # So it only leverage the first col of signal
         if isinstance(pred_score, pd.DataFrame):
             # pred_score = pred_score.iloc[:, 0]
-            pred_score = pred_score.mean(axis=1, numeric_only=True)
+            pred_score = pred_score.max(axis=1, numeric_only=True)
         if pred_score is None:
             return TradeDecisionWO([], self)
         if self.only_tradable:
