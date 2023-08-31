@@ -114,6 +114,7 @@ python setup.py install
 
 特别说明：也可以直接 pip install mlflow
 然后mlflow ui 启动服务
+<img width="1078" alt="image" src="https://github.com/vinsvison/sqlib/assets/57177476/3cb6217a-ffa1-4222-9e39-345ddec831e1">
 
 #### 3、安装prefect
 
@@ -141,6 +142,7 @@ prefect config set PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://pos
 docker start prefect-postgres
 prefect server start
 ```
+<img width="1079" alt="image" src="https://github.com/vinsvison/sqlib/assets/57177476/4a5e7f40-c1eb-4786-b5d5-6bd1e57879de">
 
 
 ##### 部署prefect
@@ -198,6 +200,8 @@ docker restart superset
 - prefect
 - superset
 - duckdb
+
+![sqlib股票回测评估系统-2023-08-31T13-31-35 247Z](https://github.com/vinsvison/sqlib/assets/57177476/41092531-633d-4119-8368-a0e3cf5891c1)
 
 ### 贡献者
 
