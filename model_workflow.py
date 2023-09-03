@@ -21,6 +21,10 @@ from qlib.data.dataset.loader import QlibDataLoader
 
 from database_utils.db_utils import save_to_db, DuckDBManager
 
+# 导入sklearn.metrics中的相关函数
+# from sklearn.metrics import accuracy_score, r2_score, recall_score
+from sklearn.metrics import mean_squared_error, r2_score
+
 
 # 定义任务
 @task(name="load_config")
@@ -158,7 +162,15 @@ def riskanalysis(report_normal):
     return analysis_df
 
 
-# 定义流程
+# 定义用于计算均方误差和R^2的函数
+def calculate_mse(pred, label):
+    return mean_squared_error(label, pred)
+
+def calculate_r2(pred, label):
+    return r2_score(label, pred)
+
+
+
 @flow(name="qlib_workflow", description="Demo Prefect")
 def run_workflow(name="qlib_workflow"):
     mlflow.set_tracking_uri("http://localhost:5000")
@@ -166,7 +178,41 @@ def run_workflow(name="qlib_workflow"):
     with mlflow.start_run() as run:
         mlflow.lightgbm.autolog()
         config = load_config()
-        model, dataset = model_data_init(config)
-        pred, label = train_and_predict(model, dataset)
+        models, dataset = model_data_init(config)
+        pred, label = train_and_predict(models, dataset)
+        
+        # 检查是否存在 NaN 值
+        if pred.isnull().any().any() or label.isnull().any().any():
+            # 处理 NaN 值
+            pred = pred.fillna(0)
+            label = label.fillna(0)
+
+        # 假设 pred 是一个 pandas DataFrame
+        pred = pred.drop(columns='date')
+
+        # 计算额外的指标
+        # pred的第一列来计算mse
+        
+        
+        mse_1 = calculate_mse(pred.iloc[:, 0], label.values) 
+        r2_1 = calculate_r2(pred.iloc[:, 0], label.values)
+        mse_2 = calculate_mse(pred.iloc[:, 1], label.values)
+        r2_2 = calculate_r2(pred.iloc[:, 1], label.values)
+
+        # 记录额外的指标
+        mlflow.log_metric("mse_1", mse_1)
+        mlflow.log_metric("r2_1", r2_1)
+        mlflow.log_metric("mse_2", mse_2)
+        mlflow.log_metric("r2_2", r2_2)
+
+
         strategy_obj, executor_obj = strategy_simulator(config, pred)
         backtest_record(config, strategy_obj, executor_obj)
+
+
+        # 计算额外的指标
+
+
+        strategy_obj, executor_obj = strategy_simulator(config, pred)
+        backtest_record(config, strategy_obj, executor_obj)
+
