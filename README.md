@@ -178,7 +178,8 @@ docker restart superset
 - superset
 - duckdb
 
-![sqlib股票回测评估系统-2023-08-31T13-31-35 247Z](https://github.com/vinsvison/sqlib/assets/57177476/41092531-633d-4119-8368-a0e3cf5891c1)
+
+![sqlib股票回测评估系统-2023-09-04T06-03-43 690Z](https://github.com/zhostev/sqlib/assets/57177476/50f23a65-011b-424c-ae89-6abb692db666)
 
 ### 贡献者
 
