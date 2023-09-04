@@ -65,7 +65,7 @@ def model_data_init(config):
 
     history = hd.fetch()
     history = history.reset_index()
-    history.head()
+    history.head(10)
 
     save_to_db("history.db", "history_db", history)
 

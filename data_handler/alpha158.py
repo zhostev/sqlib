@@ -6,7 +6,7 @@ from qlib.data.dataset.processor import Processor
 from qlib.utils import get_callable_kwargs
 from qlib.data.dataset import processor as processor_module
 from inspect import getfullargspec
-
+from database_utils.db_utils import save_to_db, DuckDBManager
 
 def check_transform_proc(proc_l, fit_start_time, fit_end_time):
     new_l = []
@@ -184,7 +184,9 @@ class Alpha158(DataHandlerLP):
         # Print loaded data
         print("Loaded data:")
         df = self.data_loader.load(instruments=self.instruments, start_time=self.start_time, end_time=self.end_time)
-        print(df.head())
+        print(start_time,end_time,'debug')
+        print(df.tail(20))
+
         
     def get_feature_config(self):
         conf = {
@@ -225,7 +227,6 @@ class Alpha158(DataHandlerLP):
         names = []
         if "kbar" in config:
             fields += [
-                "$close",
                 "($close-$open)/$open",
                 "($high-$low)/$open",
                 "($close-$open)/($high-$low+1e-12)",
@@ -237,7 +238,6 @@ class Alpha158(DataHandlerLP):
                 "(2*$close-$high-$low)/($high-$low+1e-12)",
             ]
             names += [
-                "CLOSE",
                 "KMID",
                 "KLEN",
                 "KMID2",
