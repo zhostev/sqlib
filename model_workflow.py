@@ -20,6 +20,8 @@ from qlib.contrib.report.analysis_position.report import _calculate_report_data
 from qlib.data.dataset.loader import QlibDataLoader
 
 from database_utils.db_utils import save_to_db, DuckDBManager
+from utils.calc_group_return import get_group_return
+
 
 # 导入sklearn.metrics中的相关函数
 # from sklearn.metrics import accuracy_score, r2_score, recall_score
@@ -29,7 +31,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 # 定义任务
 @task(name="load_config")
 def load_config():
-    with open("workflow_config_lightgbm_Alpha158.yaml", "r") as f:
+    with open("config/workflow_config_lightgbm_Alpha158.yaml", "r") as f:
         config = yaml.safe_load(f)
     return config
 
@@ -79,12 +81,13 @@ def train_and_predict(models, dataset):
     model_1.fit(dataset)
     pred_1 = model_1.predict(dataset)
     
-    # Train and predict with model_2
-    model_2.fit(dataset)
-    pred_2 = model_2.predict(dataset)
+    # # Train and predict with model_2
+    # model_2.fit(dataset)
+    # pred_2 = model_2.predict(dataset)
     
-    # Combine predictions
-    pred = pd.concat([pred_1, pred_2], axis=1)
+    # # Combine predictions
+    # pred = pd.concat([pred_1, pred_2], axis=1)
+    pred = pred_1.copy()
     
     # Post-processing
     if isinstance(pred, pd.Series):
@@ -161,6 +164,17 @@ def riskanalysis(report_normal):
 
     return analysis_df
 
+@task(name="get_group_return")
+def group_return(config, pred_df: pd.DataFrame = None, label_df: pd.DataFrame = None, reverse: bool = False, N: int = 5, **kwargs):
+    N = config.get("n_group", N)
+    pred_label = pd.concat([label_df, pred_df], axis=1, sort=True)
+    pred_label.columns.values[0] = 'label'    
+    kwargs['rangebreaks'] = config.get('rangebreaks')
+    group_return_df = get_group_return(pred_label, reverse, N, return_df=True, **kwargs)
+    
+    save_to_db("group_return.db", "group_return", group_return_df)
+
+    return group_return_df
 
 # 定义用于计算均方误差和R^2的函数
 def calculate_mse(pred, label):
@@ -196,14 +210,14 @@ def run_workflow(name="qlib_workflow"):
         
         mse_1 = calculate_mse(pred.iloc[:, 0], label.values) 
         r2_1 = calculate_r2(pred.iloc[:, 0], label.values)
-        mse_2 = calculate_mse(pred.iloc[:, 1], label.values)
-        r2_2 = calculate_r2(pred.iloc[:, 1], label.values)
+        # mse_2 = calculate_mse(pred.iloc[:, 1], label.values)
+        # r2_2 = calculate_r2(pred.iloc[:, 1], label.values)
 
         # 记录额外的指标
         mlflow.log_metric("mse_1", mse_1)
         mlflow.log_metric("r2_1", r2_1)
-        mlflow.log_metric("mse_2", mse_2)
-        mlflow.log_metric("r2_2", r2_2)
+        # mlflow.log_metric("mse_2", mse_2)
+        # mlflow.log_metric("r2_2", r2_2)
 
 
         strategy_obj, executor_obj = strategy_simulator(config, pred)

@@ -3,6 +3,8 @@
 # sqlib
 ![1693787547221245883C80F181C4A](https://github.com/zhostev/sqlib/assets/57177476/edbec924-f19c-4855-9263-0d901aeaa0ac)
 
+![thumbnailwebp](https://static.flomoapp.com/file/2023-09-04/14332/1693787547221245883C80F181C4A.jpg?OSSAccessKeyId=LTAI4G9PcaGksWVKCPrE1TVL&Expires=1694091526&Signature=Ym4y05vRDZXMDOuApAfS0So%2Bioc%3D)
+
 ProjectName and Description
 
 ![sqlib方案](https://github.com/vinsvison/sqlib/assets/57177476/d13aeb33-b400-469b-9faf-604036c0a21e)

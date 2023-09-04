@@ -225,6 +225,7 @@ class Alpha158(DataHandlerLP):
         names = []
         if "kbar" in config:
             fields += [
+                "$close",
                 "($close-$open)/$open",
                 "($high-$low)/$open",
                 "($close-$open)/($high-$low+1e-12)",
@@ -236,6 +237,7 @@ class Alpha158(DataHandlerLP):
                 "(2*$close-$high-$low)/($high-$low+1e-12)",
             ]
             names += [
+                "CLOSE",
                 "KMID",
                 "KLEN",
                 "KMID2",

@@ -22,7 +22,7 @@ import sys
 
 
 def load_config():
-    config_name = "workflow_config_lightgbm_Alpha158_prefect_switchable.yaml"
+    config_name = "config/workflow_config_lightgbm_Alpha158_prefect_switchable.yaml"
     with open(config_name, "r") as f:
         config = yaml.safe_load(f)
     return config
@@ -40,7 +40,7 @@ def model_data_init(config):
     use_prefect = config["use_prefect"]    
     provider_uri = config["qlib_init"]["provider_uri"]
     region = config["qlib_init"]["region"]
-    qlib.init(provider_uri=provider_uri, region=region)
+    qlib.init_qlib(provider_uri=provider_uri, region=region)
     if use_prefect:    
         logger = get_run_logger()
         logger.info("QLib initialized successfully")
@@ -110,7 +110,7 @@ def backtest_record(config, strategy_obj, executor_obj):
         executor=executor_obj, strategy=strategy_obj, **backtest_config
     )
 
-    FREQ = backtest_config['freq']
+    FREQ = "day"
     analysis_freq = "{0}{1}".format(*qlib.utils.time.Freq.parse(FREQ))
     portfolio_metrics = portfolio_metric_dict.get(analysis_freq)
     report_normal = portfolio_metrics[0]

@@ -1,0 +1,82 @@
+qlib_init:
+    provider_uri: "~/.qlib/qlib_data/cn_data"
+    region: cn
+market: &market csi300
+benchmark: &benchmark SH000300
+freq: &freq day
+use_prefect: False
+handler_name: &handler_name Alpha158
+data_handler_config: &data_handler_config
+    start_time: 2008-01-01
+    end_time: 2023-06-01
+    fit_start_time: 2008-01-01
+    fit_end_time: 2016-12-31
+    instruments: *market
+    infer_processors:
+        - class: RobustZScoreNorm
+          kwargs:
+              fields_group: feature
+              clip_outlier: true
+        - class: Fillna
+          kwargs:
+              fields_group: feature
+    learn_processors:
+        - class: DropnaLabel
+        - class: CSRankNorm
+          kwargs:
+              fields_group: label
+    label: ["Ref($close, -2) / Ref($close, -1) - 1"]
+port_analysis_config: &port_analysis_config
+    strategy:
+        class: TopkDropoutStrategy
+        module_path: qlib.contrib.strategy
+        kwargs:
+            signal: <PRED>
+            topk: 50
+            n_drop: 5
+    backtest:
+        start_time: 2017-01-01
+        end_time: 2023-06-01
+        account: 100000000
+        benchmark: *benchmark
+        # freq: day        
+        exchange_kwargs:
+            limit_threshold: 0.095
+            deal_price: close
+            open_cost: 0.0005
+            close_cost: 0.0015
+            min_cost: 5
+    executor: 
+        class: SimulatorExecutor
+        module_path: qlib.backtest.executor
+        kwargs: 
+            time_per_step: *freq
+            generate_portfolio_metrics: True
+            
+task:
+    model:
+        class: LGBModel
+        module_path: model_handler.lightgbm
+        kwargs:
+            loss: mse
+            colsample_bytree: 0.8879
+            learning_rate: 0.1
+            subsample: 0.8789
+            lambda_l1: 205.6999
+            lambda_l2: 580.9768
+            max_depth: 8
+            num_leaves: 210
+            num_threads: 20
+    dataset:
+        class: DatasetH
+        module_path: qlib.data.dataset
+        kwargs:
+            handler:
+                class: *handler_name
+                module_path: qlib.contrib.data.handler
+                kwargs: *data_handler_config
+            segments:
+                train: [2008-01-01, 2016-12-31]
+                valid: [2017-01-01, 2019-12-31]
+                test: [2020-01-01, 2023-06-01]
+
