@@ -1,2 +1,3 @@
 workflow_config_gru_AlphaCustom.yaml
 *.db
+*.db.wal
