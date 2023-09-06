@@ -67,7 +67,7 @@ def model_data_init(config):
     history = history.reset_index()
     history.head(10)
 
-    save_to_db("history.db", "history_db", history)
+    save_to_db("database_utils/duckdb_files","history.db", "history_db", history)
 
     return (model_1, model_2), dataset
 
@@ -96,7 +96,7 @@ def train_and_predict(models, dataset):
     params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
     label = dataset.prepare(**params)
 
-    save_to_db("pred.db", "pred_db", pred)
+    save_to_db("database_utils/duckdb_files","pred.db", "pred_db", pred)
     return pred, label
 
 
@@ -133,7 +133,7 @@ def backtest_record(config, strategy_obj, executor_obj):
     cumreport_df.index = pd.to_datetime(cumreport_df.index)
     cumreport_df["date"] = cumreport_df.index
 
-    save_to_db("report_normal.db", "report_db", cumreport_df)
+    save_to_db("database_utils/duckdb_files","report_normal.db", "report_db", cumreport_df)
 
     # get indicators_normal
     indicators_normal = indicator_dict.get(analysis_freq)[0]
@@ -143,7 +143,7 @@ def backtest_record(config, strategy_obj, executor_obj):
     indicators_df.index = pd.to_datetime(indicators_df.index)
     indicators_df["date"] = indicators_df.index
 
-    save_to_db("indicators_normal.db", "indicators_db", indicators_df)
+    save_to_db("database_utils/duckdb_files","indicators_normal.db", "indicators_db", indicators_df)
 
     # return results
     return report_df, indicators_normal
@@ -160,7 +160,7 @@ def riskanalysis(report_normal):
     )
     analysis_df = pd.concat(analysis)
 
-    save_to_db("analysis_df.db", "analysis_db", analysis_df)
+    save_to_db("database_utils/duckdb_files","analysis_df.db", "analysis_db", analysis_df)
 
     return analysis_df
 
@@ -172,7 +172,7 @@ def group_return(config, pred_df: pd.DataFrame = None, label_df: pd.DataFrame = 
     kwargs['rangebreaks'] = config.get('rangebreaks')
     group_return_df = get_group_return(pred_label, reverse, N, return_df=True, **kwargs)
     
-    save_to_db("group_return.db", "group_return", group_return_df)
+    save_to_db("database_utils/duckdb_files","group_return.db", "group_return", group_return_df)
 
     return group_return_df
 
