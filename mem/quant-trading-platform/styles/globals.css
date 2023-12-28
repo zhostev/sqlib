@@ -1,0 +1,133 @@
+/* styles/globals.css */
+
+/* Reset some basic elements */
+html,
+body,
+p,
+ol,
+ul,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+form,
+fieldset,
+input,
+textarea,
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Set up a decent box sizing model */
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+/* Define some global variables */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --accent-color: #9b59b6;
+  --text-color: #333;
+  --background-color: #f8f8f8;
+  --error-color: #e74c3c;
+}
+
+/* Apply a natural box layout model to all elements */
+html {
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+/* Global styles */
+body {
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Container */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+h1 {
+  font-size: 2.25rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+}
+
+/* Buttons */
+button,
+.button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  color: #fff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover,
+.button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Forms */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.3rem;
+}
+
+/* Utility Classes */
+.text-center {
+  text-align: center;
+}
+
+.text-error {
+  color: var(--error-color);
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .container {
+    width: 80%;
+  }
+}

@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Configuration",
+    "type": "object",
+    "properties": {
+      "tradingStrategy": {
+        "type": "string",
+        "enum": ["meanReversion", "momentum", "pairTrading"],
+        "description": "The trading strategy to use"
+      },
+      "riskManagement": {
+        "type": "object",
+        "properties": {
+          "maxDrawdown": {
+            "type": "number",
+            "description": "Maximum allowed drawdown percentage"
+          },
+          "stopLoss": {
+            "type": "number",
+            "description": "Stop loss percentage"
+          }
+        },
+        "required": ["maxDrawdown"]
+      },
+      "performanceMetrics": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["sharpeRatio", "sortinoRatio", "calmarRatio"]
+        },
+        "description": "List of performance metrics to evaluate"
+      }
+    },
+    "required": ["tradingStrategy", "riskManagement", "performanceMetrics"]
+  }
