@@ -2,7 +2,11 @@ import logging
 from qlib.workflow import R
 from qlib.workflow.record_temp import PortAnaRecord
 
+# 配置日志，忽略低于 ERROR 级别的日志
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
 
 def run_backtest(record_id, backtest_config):
     """

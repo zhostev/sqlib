@@ -8,9 +8,12 @@ from model.model_train import train_model
 from model.model_inference import load_model, load_prediction
 from evaluation.portfolio_analysis import run_backtest
 
-# 配置日志
+# 配置日志，忽略低于 ERROR 级别的日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+
 
 def main(config_path="config/settings.ini"):
     try:

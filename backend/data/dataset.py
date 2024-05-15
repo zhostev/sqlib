@@ -1,8 +1,12 @@
 import logging
 from qlib.data.dataset import DatasetH
 from .data_handler import get_data_handler
+from qlib.data.data import D
 
+# 配置日志，忽略低于 ERROR 级别的日志
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
 
 
 def get_dataset():
@@ -14,7 +18,8 @@ def get_dataset():
     }
 
     logger.info("创建 DatasetH, 分段: %s", segments)
-    dataset = DatasetH(dh, segments=segments)
+    market = D.instruments("csi300")
+    dataset = DatasetH(dh,instruments=market, segments=segments)
 
     logger.info("检查数据集是否包含 'feature' 和 'label' 列...")
     for segment in segments:

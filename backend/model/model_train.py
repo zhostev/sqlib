@@ -4,7 +4,11 @@ from qlib.workflow.record_temp import SignalRecord
 from qlib.utils import init_instance_by_config
 from data.dataset import get_dataset
 
+# 配置日志，忽略低于 ERROR 级别的日志
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
 
 def train_model(model_config):
     """
@@ -21,7 +25,7 @@ def train_model(model_config):
         logger.info("数据准备...")
         data = dataset.prepare("train", col_set=["feature", "label"])
         if data.isnull().values.any():
-            logger.warning("训练数据中包含 NaN 值。")
+            logger.warning("训练数据中包含 NaN 值。{data}")
         
         model.fit(dataset)
         R.save_objects(trained_model=model)
